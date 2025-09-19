@@ -1374,7 +1374,7 @@ void futurerestore::doRestore(const char *ipsw) {
 //          bootargs.append("nand-enable-reformat=0x1 ");
 //        }
         bootargs.append(
-            "-v -restore debug=0x2014e keepsyms=0x1 amfi=0xff amfi_allow_any_signature=0x1 amfi_get_out_of_my_way=0x1 cs_enforcement_disable=0x1");
+            "-restore debug=0x2014e keepsyms=0x1 amfi=0xff amfi_allow_any_signature=0x1 amfi_get_out_of_my_way=0x1 cs_enforcement_disable=0x1");
       }
       auto custom_seed = std::getenv("FUTURERESTORE_CUSTOM_CRYPTEX_SEED");
       if(_client->build_major > 19) {
@@ -2702,32 +2702,37 @@ void futurerestore::downloadLatestCryptex1() {
 
 void futurerestore::downloadLatestFirmwareComponents() {
     info("Downloading the latest firmware components...\n");
-    char *manifeststr = getLatestManifest();
-    if (elemExists("Rap,RTKitOS", manifeststr, getDeviceBoardNoCopy(), 0))
-        downloadLatestRose();
-    if (elemExists("SE,UpdatePayload", manifeststr, getDeviceBoardNoCopy(), 0))
-        downloadLatestSE();
-    if (elemExists("Savage,B0-Prod-Patch", manifeststr, getDeviceBoardNoCopy(), 0) &&
-        elemExists("Savage,B0-Dev-Patch", manifeststr, getDeviceBoardNoCopy(), 0) &&
-        elemExists("Savage,B2-Prod-Patch", manifeststr, getDeviceBoardNoCopy(), 0) &&
-        elemExists("Savage,B2-Dev-Patch", manifeststr, getDeviceBoardNoCopy(), 0) &&
-        elemExists("Savage,BA-Prod-Patch", manifeststr, getDeviceBoardNoCopy(), 0) &&
-        elemExists("Savage,BA-Dev-Patch", manifeststr, getDeviceBoardNoCopy(), 0)) {
-        downloadLatestSavage();
+    const char *disableFirmware = std::getenv("IDR_DISABLE_FIRMWARE_DOWNLOAD")
+    if (!disableFirmware) {
+        char *manifeststr = getLatestManifest();
+        if (elemExists("Rap,RTKitOS", manifeststr, getDeviceBoardNoCopy(), 0))
+            downloadLatestRose();
+        if (elemExists("SE,UpdatePayload", manifeststr, getDeviceBoardNoCopy(), 0))
+            downloadLatestSE();
+        if (elemExists("Savage,B0-Prod-Patch", manifeststr, getDeviceBoardNoCopy(), 0) &&
+            elemExists("Savage,B0-Dev-Patch", manifeststr, getDeviceBoardNoCopy(), 0) &&
+            elemExists("Savage,B2-Prod-Patch", manifeststr, getDeviceBoardNoCopy(), 0) &&
+            elemExists("Savage,B2-Dev-Patch", manifeststr, getDeviceBoardNoCopy(), 0) &&
+            elemExists("Savage,BA-Prod-Patch", manifeststr, getDeviceBoardNoCopy(), 0) &&
+            elemExists("Savage,BA-Dev-Patch", manifeststr, getDeviceBoardNoCopy(), 0)) {
+            downloadLatestSavage();
+        }
+        if (elemExists("BMU,DigestMap", manifeststr, getDeviceBoardNoCopy(), 0) ||
+            elemExists("BMU,FirmwareMap", manifeststr, getDeviceBoardNoCopy(), 0))
+            downloadLatestVeridian();
+        if (elemExists("Timer,RestoreRTKitOS", manifeststr, getDeviceBoardNoCopy(), 0))
+            downloadLatestTimer();
+        if (elemExists("Baobab,TCON", manifeststr, getDeviceBoardNoCopy(), 0))
+            downloadLatestBaobab();
+        if (elemExists("Yonkers,PatchEpoch", manifeststr, getDeviceBoardNoCopy(), 0))
+            downloadLatestYonkers();
+        const char *disableLatest = std::getenv("IDR_DISABLE_LATEST_CRYPTEX");
+        if(!disableLatest && elemExists("Cryptex1,SystemOS", manifeststr, getDeviceBoardNoCopy(), 0))
+            downloadLatestCryptex1();
+        info("Finished downloading the latest firmware components!\n");
+    } else {
+        info("Skipped downloading the latest firmware components!\n");
     }
-    if (elemExists("BMU,DigestMap", manifeststr, getDeviceBoardNoCopy(), 0) ||
-        elemExists("BMU,FirmwareMap", manifeststr, getDeviceBoardNoCopy(), 0))
-        downloadLatestVeridian();
-    if (elemExists("Timer,RestoreRTKitOS", manifeststr, getDeviceBoardNoCopy(), 0))
-        downloadLatestTimer();
-    if (elemExists("Baobab,TCON", manifeststr, getDeviceBoardNoCopy(), 0))
-        downloadLatestBaobab();
-    if (elemExists("Yonkers,PatchEpoch", manifeststr, getDeviceBoardNoCopy(), 0))
-        downloadLatestYonkers();
-    const char *disableLatest = std::getenv("IDR_DISABLE_LATEST_CRYPTEX");
-    if(!disableLatest && elemExists("Cryptex1,SystemOS", manifeststr, getDeviceBoardNoCopy(), 0))
-        downloadLatestCryptex1();
-    info("Finished downloading the latest firmware components!\n");
 }
 
 void futurerestore::downloadLatestBaseband() {
