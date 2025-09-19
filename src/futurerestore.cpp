@@ -2702,7 +2702,7 @@ void futurerestore::downloadLatestCryptex1() {
 
 void futurerestore::downloadLatestFirmwareComponents() {
     info("Downloading the latest firmware components...\n");
-    const char *disableFirmware = std::getenv("IDR_DISABLE_FIRMWARE_DOWNLOAD")
+    const char *disableFirmware = std::getenv("IDR_DISABLE_FIRMWARE_DOWNLOAD");
     if (!disableFirmware) {
         char *manifeststr = getLatestManifest();
         if (elemExists("Rap,RTKitOS", manifeststr, getDeviceBoardNoCopy(), 0))
