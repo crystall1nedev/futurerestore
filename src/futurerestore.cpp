@@ -695,7 +695,8 @@ void futurerestore::enterPwnRecovery(plist_t build_identity, std::string bootarg
     }
 
     /* Patch bootloaders */
-    if (!cache1 && !cache2) {
+    const char *skipFirmwareKeys = std::getenv("FUTURERESTORE_SKIP_FIRMWARE_KEYS");
+    if (!cache1 && !cache2 && !skipFirmwareKeys) {
         try {
             std::string board = getDeviceBoardNoCopy();
             info("Getting firmware keys for: %s\n", board.c_str());
